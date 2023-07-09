@@ -1,0 +1,83 @@
+generator client {
+  provider = "prisma-client-js"
+  previewFeatures = ["clientExtensions"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model delivery_company {
+  id                       String                     @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  name                     String                     @db.VarChar(255)
+  created_at               DateTime                   @default(now()) @db.Timestamp(6)
+  updated_at               DateTime                   @default(now()) @db.Timestamp(6)
+  product_delivery_company product_delivery_company[]
+}
+
+model organization {
+  id          String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  description String?   @db.VarChar(255)
+  image       String?   @db.VarChar(255)
+  name        String    @db.VarChar(255)
+  created_at  DateTime  @default(now()) @db.Timestamp(6)
+  updated_at  DateTime  @default(now()) @db.Timestamp(6)
+  user_id     String    @db.Uuid
+  tenant_id   String    @db.VarChar(255)
+  user        user      @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  product     product[]
+}
+
+model product {
+  id                       String                     @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  name                     String                     @db.VarChar(255)
+  price                    Int
+  discount_percentage      Int?
+  organization_id          String?                    @db.Uuid
+  created_at               DateTime                   @default(now()) @db.Timestamp(6)
+  updated_at               DateTime                   @default(now()) @db.Timestamp(6)
+  organization             organization?              @relation(fields: [organization_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  product_delivery_company product_delivery_company[]
+  product_social_network   product_social_network[]
+}
+
+model product_delivery_company {
+  id                  String            @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  product_id          String?           @db.Uuid
+  delivery_company_id String?           @db.Uuid
+  created_at          DateTime          @default(now()) @db.Timestamp(6)
+  updated_at          DateTime          @default(now()) @db.Timestamp(6)
+  delivery_company    delivery_company? @relation(fields: [delivery_company_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  product             product?          @relation(fields: [product_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model product_social_network {
+  id                String          @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  product_id        String?         @db.Uuid
+  social_network_id String?         @db.Uuid
+  created_at        DateTime        @default(now()) @db.Timestamp(6)
+  updated_at        DateTime        @default(now()) @db.Timestamp(6)
+  product           product?        @relation(fields: [product_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  social_network    social_network? @relation(fields: [social_network_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model social_network {
+  id                     String                   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  name                   String                   @db.VarChar(255)
+  created_at             DateTime                 @default(now()) @db.Timestamp(6)
+  updated_at             DateTime                 @default(now()) @db.Timestamp(6)
+  product_social_network product_social_network[]
+}
+
+model user {
+  id           String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  email        String         @unique @db.VarChar(255)
+  firstName    String?        @db.VarChar(255)
+  lastName     String?        @db.VarChar(255)
+  roq_user_id  String         @db.VarChar(255)
+  tenant_id    String         @db.VarChar(255)
+  created_at   DateTime       @default(now()) @db.Timestamp(6)
+  updated_at   DateTime       @default(now()) @db.Timestamp(6)
+  organization organization[]
+}
